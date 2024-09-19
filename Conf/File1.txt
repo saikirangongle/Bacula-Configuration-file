@@ -1,0 +1,103 @@
+Director {                            # define myself
+  Name = abdr-dir
+  DIRport = 9101                # where we listen for UA connections
+  QueryFile = "/etc/bacula/scripts/query.sql"
+  WorkingDirectory = "/var/lib/bacula"
+  PidDirectory = "/run/bacula"
+  Maximum Concurrent Jobs = 20
+  Password = "UAw0VUP5tmLWg1v_zGp7IV7ACPM-x7cqt"         # Console password
+  Messages = Daemon
+  DirAddress = 127.0.0.1
+}
+
+  JobDefs {
+    Name = "DefaultJob"
+    Type = Backup
+    Level = Incremental
+    FileSet="Full Set"
+    Schedule = "WeeklyCycle"
+    Storage = File
+    Messages = Standard
+    Pool = Default
+    Priority = 10
+    Write Bootstrap = "/var/lib/bacula/%c.bsr"
+  }
+Job {
+    Name = "ExampleJob"
+    JobDefs = "DefaultJob"
+    Client = client1-fd
+    FileSet="Full Set"
+  }
+
+  Schedule {
+    Name = "WeeklyCycle"
+    Run = Full 1st sun at 23:05
+    Run = Differential 2nd-5th sun at 23:05
+    Run = Incremental mon-sat at 23:05
+  }
+
+  FileSet {
+    Name = "Full Set"
+    Include {
+      Options {
+        signature = MD5
+      }
+      File = /etc
+      File = /home
+    }
+    Exclude {
+      File = /var/tmp
+      File = /tmp
+      File = /proc
+      File = /var/run
+      File = /.journal
+      File = /.fsck
+      File = /.Spotlight-V100
+      File = /.fseventsd
+      File = /var/lib/bacula
+      File = /var/cache/bacula
+    }
+  }
+Catalog {
+    Name = MyCatalog
+    dbname = bacula
+    dbuser = bacula
+    dbpassword = "Password"
+    dbaddress = localhost
+    dbport = 3306
+  }
+
+  Storage {
+    Name = File
+    Address = localhost
+    SDPort = 9103
+    Password = "ZNkvLhJQxIdkhTNkzMG2M3pomCLkWQ1n-"
+    Device = FileStorage
+    Media Type = File
+  }
+
+  Pool {
+    Name = Default
+    Pool Type = Backup
+    Recycle = yes                       # Bacula can automatically recycle Volumes
+    AutoPrune = yes                     # Prune expired volumes
+    Volume Retention = 365 days         # How long to keep each volume
+    Maximum Volumes = 100               # Maximum number of Volumes allowed in the Pool
+  }
+}
+
+Console {
+  Name = my-console
+  Password = "tjxV2gKa1AA7B6p6xMxVp7-PQmOktrbFn"
+  CommandACL = status, .status
+}
+Messages {
+  Name = Standard
+  mailcommand = "/usr/lib/bacula/bsmtp -h localhost -f \"\(Bacula\) \<%r\>\" -s \"Bacula: %t %e of %c %l\" %r"
+  operatorcommand = "/usr/lib/bacula/bsmtp -h localhost -f \"\(Bacula\) \<%r\>\" -s \"Bacula: Intervention needed for %j\" %r"
+  mail = root@localhost = all, !skipped
+  operator = root@localhost = mount
+  console = all, !skipped, !saved
+  append = "/var/log/bacula/log"
+  catalog = all
+}
