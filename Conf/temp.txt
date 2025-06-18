@@ -1,5 +1,4 @@
 install and setup pthreads for bacula in ubuntu
-ChatGPT
 
 To install and set up pthreads for Bacula on Ubuntu, you typically need to ensure that pthreads (POSIX Threads) are available and correctly configured. Here’s a step-by-step guide to achieve this:
 1. Install Bacula
